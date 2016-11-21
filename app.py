@@ -16,30 +16,31 @@ state = 0
 cv2.namedWindow("IMG", cv2.WND_PROP_FULLSCREEN)          
 cv2.setWindowProperty("IMG", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
+fgbg = cv2.createBackgroundSubtractorMOG2()
+
 while(True):
     # Capture frame-by-frame
     ret, frame = cap.read()
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    fgmask = fgbg.apply(frame, learningRate = 0 if state > 0 else -1)
 
     # Background calibration 
     if state == 0:
         cv2.putText(
         	img = frame,
         	text = 'Init ' + str(INIT_TIME - timer), 
-        	org = (int(FRAME_WIDTH/2 - 100),int(FRAME_HEIGHT/2 - 30)),
+        	org =  (0, 0), #(int(FRAME_WIDTH/2 - 100),int(FRAME_HEIGHT/2 - 30)),
         	fontFace = cv2.FONT_HERSHEY_DUPLEX, 
-        	fontScale = 6, 
+        	fontScale = 2, 
         	color = (255,255,255), 
         	thickness = 5)
 
-        background = gray
-
         if timer >= INIT_TIME:
         	state = 1
-    
+    # Capture    
     if state == 1:  
-        mask = cv2.absdiff(gray, background)
-
+    
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)
         for (x,y,w,h) in faces:
         	cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
@@ -50,13 +51,14 @@ while(True):
         		cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
 
-        frame_2 = cv2.bitwise_and(frame, frame, mask=mask)
+        #frame_2 = cv2.bitwise_and(frame, frame, mask=mask)
 
-        cv2.imshow('IMG2', frame_2)
-        cv2.imshow('MASK', mask)
+        #cv2.imshow('IMG2', frame_2)
+        
 
     # Display the resulting frame
-    cv2.imshow('IMG', frame)
+    #cv2.imshow('IMG', frame)
+    cv2.imshow('MASK', fgmask)
 
     key = cv2.waitKey(1) & 0xFF
     if key == ord('i'):
