@@ -21,8 +21,8 @@ cv2.setWindowProperty("IMG", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 fgbg = cv2.createBackgroundSubtractorMOG2()
 
-background1 = cv2.imread('backgrounds/background1.jpeg', 0)
-background1 = cv2.resize(background1 (FRAME_WIDTH, FRAME_HEIGHT))
+background1 = cv2.imread('backgrounds/background1.jpeg')
+background1 = cv2.resize(background1, (FRAME_WIDTH, FRAME_HEIGHT))
 
 while(True):
     # Capture frame-by-frame
@@ -30,20 +30,22 @@ while(True):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     fgmask = fgbg.apply(frame, learningRate = 0 if state > 0 else -1)
+    bgmask = cv2.bitwise_not(fgmask)
 
     # Background calibration 
     if state == 0:
         cv2.putText(
         	img = frame,
         	text = 'Init ' + str(INIT_TIME - timer), 
-        	org =  (int(FRAME_WIDTH/2 - 100),int(FRAME_HEIGHT/2 - 30)),
+        	org =  (0, FRAME_HEIGHT - 130),
         	fontFace = cv2.FONT_HERSHEY_DUPLEX, 
-        	fontScale = 2, 
+        	fontScale = 1, 
         	color = (255,255,255), 
-        	thickness = 5)
+        	thickness = 1)
 
         if timer >= INIT_TIME:
         	state = 1
+
     # Capture    
     if state == 1:  
     
@@ -56,8 +58,10 @@ while(True):
         	for (ex,ey,ew,eh) in eyes:
         		cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
-
-        frame = cv2.bitwise_and(frame, frame, mask=fgmask)
+        print(frame.shape)
+        print(background1.shape)
+        #frame = cv2.seamlessClone(frame, background1, fgmask, (int(FRAME_WIDTH / 2), int(FRAME_HEIGHT / 2)), cv2.MIXED_CLONE)
+        frame = cv2.bitwise_or(background1, frame, mask=fgmask),
 
         #cv2.imshow('IMG2', frame_2)
         
