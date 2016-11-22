@@ -7,8 +7,11 @@ eye_cascade = cv2.CascadeClassifier('models/haarcascade_eye.xml')
 cap = cv2.VideoCapture(0)
 
 INIT_TIME = 100
-FRAME_WIDTH = 640 * 2
-FRAME_HEIGHT = 480 * 2
+FRAME_WIDTH = 800
+FRAME_HEIGHT = 600
+
+cap.set(cv2.CAP_PROP_FRAME_WIDTH, FRAME_WIDTH);
+cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 
 timer = 0;
 state = 0
@@ -17,6 +20,9 @@ cv2.namedWindow("IMG", cv2.WND_PROP_FULLSCREEN)
 cv2.setWindowProperty("IMG", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 fgbg = cv2.createBackgroundSubtractorMOG2()
+
+background1 = cv2.imread('backgrounds/background1.jpeg', 0)
+background1 = cv2.resize(background1 (FRAME_WIDTH, FRAME_HEIGHT))
 
 while(True):
     # Capture frame-by-frame
@@ -30,7 +36,7 @@ while(True):
         cv2.putText(
         	img = frame,
         	text = 'Init ' + str(INIT_TIME - timer), 
-        	org =  (0, 0), #(int(FRAME_WIDTH/2 - 100),int(FRAME_HEIGHT/2 - 30)),
+        	org =  (int(FRAME_WIDTH/2 - 100),int(FRAME_HEIGHT/2 - 30)),
         	fontFace = cv2.FONT_HERSHEY_DUPLEX, 
         	fontScale = 2, 
         	color = (255,255,255), 
@@ -51,13 +57,13 @@ while(True):
         		cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
 
-        #frame_2 = cv2.bitwise_and(frame, frame, mask=mask)
+        frame = cv2.bitwise_and(frame, frame, mask=fgmask)
 
         #cv2.imshow('IMG2', frame_2)
         
 
     # Display the resulting frame
-    #cv2.imshow('IMG', frame)
+    cv2.imshow('IMG', frame)
     cv2.imshow('MASK', fgmask)
 
     key = cv2.waitKey(1) & 0xFF
