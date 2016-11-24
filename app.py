@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+print('Using OpenCV ' + cv2.__version__)
+
 face_cascade = cv2.CascadeClassifier('models/haarcascade_frontalface_default.xml')
 eye_cascade = cv2.CascadeClassifier('models/haarcascade_eye.xml')
 
@@ -20,7 +22,7 @@ cv2.namedWindow("IMG", cv2.WND_PROP_FULLSCREEN)
 cv2.setWindowProperty("IMG", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
-fgbg = cv2.createBackgroundSubtractorMOG2()
+fgbg = cv2.createBackgroundSubtractorMOG2(history = INIT_TIME, varThreshold = 12, detectShadows = False)
 
 background1 = cv2.imread('backgrounds/background1.jpeg')
 background1 = cv2.resize(background1, (FRAME_WIDTH, FRAME_HEIGHT))
@@ -33,15 +35,15 @@ while(True):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     fgmask = fgbg.apply(frame, learningRate = 0 if state > 0 else -1)
-    _, fgmask = cv2.threshold(fgmask, 127, 255, cv2.THRESH_BINARY)
+    #_, fgmask = cv2.threshold(fgmask, 127, 255, cv2.THRESH_BINARY)
     fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
     bgmask = 255 - fgmask
 
-    # Background calibration 
+    # Background training 
     if state == 0:
         cv2.putText(
         	img = fgmask,
-        	text = 'Init ' + str(int(100.0*timer/INIT_TIME)) + '%', 
+        	text = 'Training Segmentation Algorithm (' + str(int(100.0*timer/INIT_TIME)) + ' %)', 
         	org =  (0, FRAME_HEIGHT - 5),
         	fontFace = cv2.FONT_HERSHEY_DUPLEX, 
         	fontScale = .7, 
@@ -55,25 +57,25 @@ while(True):
         cv2.imshow('IMG', fgmask)
 
     # Capture    
-    if state == 1:  
-
-        #faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-        #for (x,y,w,h) in faces:
-        #	cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
-        #	roi_gray = gray[y:y+h, x:x+w]q
-        #	roi_color = frame[y:y+h, x:x+w]
-        #	eyes = eye_cascade.detectMultiScale(roi_gray)
-        #	for (ex,ey,ew,eh) in eyes:
-        #		cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+    if state == 1:
 
         #m = cv2.moments(fgmask, False);
         #center = (int(m['m10']/m['m00']), int(m['m01']/m['m00']))
         #print(center)
-        center = (int(FRAME_WIDTH/2), int(FRAME_HEIGHT/2))
-        frame = cv2.seamlessClone(frame, background1, fgmask, center, cv2.MIXED_CLONE)
+        #center = (int(FRAME_WIDTH/2), int(FRAME_HEIGHT/2))
+        #frame = cv2.seamlessClone(frame, background1, fgmask, center, cv2.MIXED_CLONE)
         #frame = cv2.bitwise_and(frame, frame, mask=fgmask)
         #frame = cv2.bitwise_and(background1, background1, mask=bgmask)
-        #frame = cv2.bitwise_and(background1, background1, mask=bgmask) + cv2.bitwise_and(frame, frame, mask=fgmask)
+        frame = cv2.bitwise_and(background1, background1, mask=bgmask) + cv2.bitwise_and(frame, frame, mask=fgmask)
+
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)        
+        for (x,y,w,h) in faces:
+           cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
+           roi_gray = gray[y:y+h, x:x+w]
+           roi_color = frame[y:y+h, x:x+w]
+           eyes = eye_cascade.detectMultiScale(roi_gray)
+           for (ex,ey,ew,eh) in eyes:
+               cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
         #cv2.imshow('IMG2', frame_2)
         
