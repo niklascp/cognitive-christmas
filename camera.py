@@ -4,6 +4,7 @@ import numpy as np
 import os
 import datetime
 import time
+import random
 import cv2
 
 class VideoCamera(object):
@@ -141,20 +142,22 @@ class VideoCamera(object):
 
             # S3: Capture
             elif self.state == 3:
-                frame = cv2.bitwise_and(self.background1, self.background1, mask=bgmask) + cv2.bitwise_and(frame, frame, mask=fgmask)
+                #frame = cv2.bitwise_and(self.background1, self.background1, mask=bgmask) + cv2.bitwise_and(frame, frame, mask=fgmask)
 
                 faces = self.face_cascade.detectMultiScale(gray, 1.3, 5) 
 
                 for (x,y,w,h) in faces:
                     # Select a hat at fit it to face
-                    hat = self.hats[0]
-                    hat = cv2.resize(hat, (w, int(w/hat.shape[1]*hat.shape[0])), 0, 0, cv2.INTER_CUBIC)
+                    hat = random.choice(self.hats)
+                    x_factor = 1.45
+                    y_offset = 0.15
+                    hat = cv2.resize(hat, (int(w*x_factor), int(w*x_factor/hat.shape[1]*hat.shape[0])), 0, 0, cv2.INTER_CUBIC)
                     # Get fitted hat width/hight, and crop to bounding box.
                     h_h, h_w = hat.shape[:2] 
-                    h_x1 = x
-                    h_x2 = min(x + w, self.FRAME_WIDTH)
-                    h_y1 = max(y - h_h, 0)
-                    h_y2 = min(y, self.FRAME_HEIGHT)
+                    h_x1 = max(int(x - (h_w - w)/2), 0)
+                    h_x2 = min(int(x + w + (h_w - w)/2), self.FRAME_WIDTH)
+                    h_y1 = max(int(y + h*y_offset - h_h), 0)
+                    h_y2 = min(int(y + h*y_offset), self.FRAME_HEIGHT)
                     # Recalulate hat width/hight if cropped by bounding box.
                     h_w = h_x2 - h_x1
                     h_h = h_y2 - h_y1
