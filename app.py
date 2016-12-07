@@ -18,10 +18,10 @@ cap.set(cv2.CAP_PROP_FRAME_HEIGHT, FRAME_HEIGHT);
 timer = 0;
 state = 0
 
-cv2.namedWindow("IMG", cv2.WND_PROP_FULLSCREEN)          
-cv2.setWindowProperty("IMG", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+#cv2.namedWindow("IMG", cv2.WND_PROP_FULLSCREEN)          
+#cv2.setWindowProperty("IMG", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 fgbg = cv2.createBackgroundSubtractorMOG2(history = INIT_TIME, varThreshold = 12, detectShadows = False)
 
 background1 = cv2.imread('backgrounds/background1.jpeg')
@@ -34,10 +34,19 @@ while(True):
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-    fgmask = fgbg.apply(frame, learningRate = 0 if state > 0 else -1)
+    fgmask = fgbg.apply(frame, learningRate = 0.001 if state > 0 else -1)
     #_, fgmask = cv2.threshold(fgmask, 127, 255, cv2.THRESH_BINARY)
-    fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
-    bgmask = 255 - fgmask
+    fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel)
+    # Find countours
+
+    im_floodfill = fgmask.copy()
+    mask = np.zeros((FRAME_HEIGHT + 2, FRAME_WIDTH + 2), np.uint8)
+    cv2.floodFill(im_floodfill, mask, (0, 0), 255);
+    cv2.floodFill(im_floodfill, mask, (0, FRAME_HEIGHT - 2), 255);
+    im_floodfill_inv = cv2.bitwise_not(im_floodfill)
+    fgmask = fgmask | im_floodfill_inv
+
+    bgmask = cv2.bitwise_not(fgmask)
 
     # Background training 
     if state == 0:
@@ -59,10 +68,10 @@ while(True):
     # Capture    
     if state == 1:
 
-        #m = cv2.moments(fgmask, False);
-        #center = (int(m['m10']/m['m00']), int(m['m01']/m['m00']))
-        #print(center)
-        #center = (int(FRAME_WIDTH/2), int(FRAME_HEIGHT/2))
+        m = cv2.moments(fgmask)
+        center = (int(m['m10']/m['m00']), int(m['m01']/m['m00']))
+        print(center)
+        center = (10, 10)
         #frame = cv2.seamlessClone(frame, background1, fgmask, center, cv2.MIXED_CLONE)
         #frame = cv2.bitwise_and(frame, frame, mask=fgmask)
         #frame = cv2.bitwise_and(background1, background1, mask=bgmask)
@@ -71,11 +80,11 @@ while(True):
         faces = face_cascade.detectMultiScale(gray, 1.3, 5)        
         for (x,y,w,h) in faces:
            cv2.rectangle(frame,(x,y),(x+w,y+h),(255,0,0),2)
-           roi_gray = gray[y:y+h, x:x+w]
-           roi_color = frame[y:y+h, x:x+w]
-           eyes = eye_cascade.detectMultiScale(roi_gray)
-           for (ex,ey,ew,eh) in eyes:
-               cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
+           #roi_gray = gray[y:y+h, x:x+w]
+           #roi_color = frame[y:y+h, x:x+w]
+           #eyes = eye_cascade.detectMultiScale(roi_gray)
+           #for (ex,ey,ew,eh) in eyes:
+           #    cv2.rectangle(roi_color,(ex,ey),(ex+ew,ey+eh),(0,255,0),2)
 
         #cv2.imshow('IMG2', frame_2)
         
