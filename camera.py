@@ -8,14 +8,14 @@ import cv2
 
 class VideoCamera(object):
     INIT_TIME = 100
-    FRAME_WIDTH = 600
+    FRAME_WIDTH = 640
     FRAME_HEIGHT = 480
     HISTORY = 25
     THRESHOLD = 18
 
     def __init__(self, usePiCamera=True):
         # initialize the camera and grab a reference to the raw camera capture
-        self.vs = VideoStream(usePiCamera=usePiCamera, resolution = (self.FRAME_WIDTH, self.FRAME_HEIGHT), framerate = 12)
+        self.vs = VideoStream(usePiCamera=usePiCamera, src = 1, resolution = (self.FRAME_WIDTH, self.FRAME_HEIGHT), framerate = 12)
 
         self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
         self.fgbg = cv2.createBackgroundSubtractorMOG2(history = self.INIT_TIME, varThreshold = 12, detectShadows = False)
