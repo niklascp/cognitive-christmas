@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 
 <html lang="en">
 <head>
@@ -12,7 +12,32 @@
   <div id="videoPane">
     <img src="/video_feed" />
   </div>
+  <div id="imagePane">
+
+  </div>
   <script src="js/jquery-3.1.1.min.js"></script>
-  <script src="js/scripts.js"></script>
+  <script type="text/javascript">
+
+      /* */
+      $(function () {
+          var filename = '';
+          setInterval(function () {
+              $.get('images', {}, function (data) {
+                  if (data.length == 0 || data[0] == filename)
+                      return;
+
+                  var imagePane = $('#imagePane');
+                  imagePane.empty();
+
+                  $.each(data, function (i) {
+                      var li = $('<img/>')
+                          .attr('src', i)
+                          .appendTo(imagePane);
+                  });
+              });
+          }, 1000);
+      });
+
+  </script>
 </body>
 </html>

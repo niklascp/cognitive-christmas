@@ -16,7 +16,7 @@ class VideoCamera(object):
 
     def __init__(self, usePiCamera=True):
         # initialize the camera and grab a reference to the raw camera capture
-        self.vs = VideoStream(usePiCamera=usePiCamera, src = 1, resolution = (self.FRAME_WIDTH, self.FRAME_HEIGHT), framerate = 12)
+        self.vs = VideoStream(usePiCamera=usePiCamera, src = 0, resolution = (self.FRAME_WIDTH, self.FRAME_HEIGHT), framerate = 12)
 
         self.kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
         self.fgbg = cv2.createBackgroundSubtractorMOG2(history = self.INIT_TIME, varThreshold = 12, detectShadows = False)
